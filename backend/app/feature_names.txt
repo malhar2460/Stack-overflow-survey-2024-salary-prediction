@@ -1,0 +1,15 @@
+YearsCode
+YearsCodePro
+WorkExp
+EdLevel
+DevType
+Country
+AISelect
+Employment
+CodingActivities
+LanguageHaveWorkedWith
+DatabaseHaveWorkedWith
+PlatformHaveWorkedWith
+WebframeHaveWorkedWith
+MiscTechHaveWorkedWith
+OpSysProfessional use

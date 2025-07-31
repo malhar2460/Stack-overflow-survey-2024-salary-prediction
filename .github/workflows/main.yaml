@@ -1,12 +1,9 @@
-
 name: CI/CD Pipeline for Stack Overflow Salary Predictor
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
@@ -26,25 +23,21 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18' # Specify a Node.js version compatible with your frontend
-
-    # ------------------------------------------------------------------
-    # Backend Dependencies & Tests
-    # ------------------------------------------------------------------
+        node-version: '18' 
+    
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
+        
+        
+        rm -f pyproject.toml
         pip install -r requirements.txt
       
     - name: Run Backend Tests (Placeholder)
       run: |
         echo "Running backend tests..."
-        # Add your backend test commands here. For example:
-        # pytest backend/
     
-    # ------------------------------------------------------------------
-    # Frontend Dependencies & Tests
-    # ------------------------------------------------------------------
+    
     - name: Install Frontend dependencies
       working-directory: ./frontend
       run: npm install
@@ -53,39 +46,13 @@ jobs:
       working-directory: ./frontend
       run: |
         echo "Running frontend tests..."
-        # Add your frontend test command here. For example:
-        # npm test
-
-    # ------------------------------------------------------------------
-    # Automated Model Training
-    # ------------------------------------------------------------------
     - name: Run Model Training
       env:
         DAGSHUB_USER_NAME: ${{ secrets.DAGSHUB_USER_NAME }}
-        DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
       run: |
-        # This assumes your training script can be run directly.
-        # You might need to adjust the path to your data if it's not checked in.
-        # Consider using DVC to pull data if necessary.
         python modeling/train.py
-
-    # ------------------------------------------------------------------
-    # Build Artifacts
-    # ------------------------------------------------------------------
+    
     - name: Build Frontend
       working-directory: ./frontend
       run: npm run build
-
-    # You can add steps here to upload your build artifacts if needed
-    # - name: Upload backend artifact
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: backend-build
-    #     path: ./backend 
-        
-    # - name: Upload frontend artifact
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: frontend-build
-    #     path: ./frontend/build
