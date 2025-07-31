@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
     import { onMount } from 'svelte';
-    import Chart from 'chart.js/auto';
+    import Chart from '$lib/components/Chart.svelte';
+    import PredictorForm from '$lib/components/PredictorForm.svelte';
 
     // --- State Management ---
     let profile = {
@@ -16,10 +17,26 @@
         OpSysPersonalUse: "Linux-based"
     };
 
-    let prediction = null;
     let isLoading = false;
     let error = null;
+    let topCountries: string[] = [];
+    let countrySalaries: number[] = [];
+    let topTech: string[] = [];
+    let techSalaries: number[] = [];
+    let loadingEDA = true;
+    let edaError: string | null = null;
 
+    // Prediction result
+    let prediction: number | null = null;
+
+    // Base URL from env
+    const API_BASE = "http://127.0.0.1:8000";
+
+    // Fetch EDA on mount
+    
+
+    // Chart.js common options
+   
     // In a real app, this would come from an environment variable
     // Vercel automatically proxies /api requests to the backend.
     const API_URL = 'http://127.0.0.1:8000/predict'; 
@@ -64,71 +81,32 @@
     }
 
     // --- Charting Logic ---
-    onMount(() => {
-        const chartFontColor = '#4B5563';
-        const chartGridColor = '#E5E7EB';
-        const primaryColor = '#14B8A6'; // Teal
-        const secondaryColor = '#F97316'; // Orange
+    onMount(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/eda`);
+      if (!res.ok) throw new Error(await res.text());
+      const { top_countries, country_salaries, top_tech, tech_salaries } = await res.json();
+      topCountries    = top_countries;
+      countrySalaries = country_salaries;
+      topTech         = top_tech;
+      techSalaries    = tech_salaries;
+    } catch (e) {
+      edaError = (e as Error).message;
+    } finally {
+      loadingEDA = false;
+    }
+  });
 
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: chartFontColor }, grid: { display: false } },
-                y: { ticks: { color: chartFontColor }, grid: { color: chartGridColor } }
-            }
-        };
-
-        const horizontalBarOptions = {
-            ...commonOptions,
-            indexAxis: 'y',
-            scales: {
-                x: { ticks: { color: chartFontColor }, grid: { color: chartGridColor } },
-                y: { ticks: { color: chartFontColor }, grid: { display: false } }
-            }
-        };
-
-        // EDA Chart 1: Top Countries
-        new Chart(document.getElementById('countryChart'), {
-            type: 'bar',
-            data: {
-                labels: ['USA', 'Germany', 'India', 'UK', 'Canada', 'France'],
-                datasets: [{
-                    label: 'Respondents',
-                    data: [18.9, 8.4, 7.2, 5.5, 3.6, 3.6],
-                    backgroundColor: primaryColor,
-                    borderRadius: 4
-                }]
-            },
-            options: horizontalBarOptions
-        });
-
-        // EDA Chart 2: Top Paying Technologies
-        new Chart(document.getElementById('techSalaryChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Erlang', 'Clojure', 'F#', 'Go', 'Ruby', 'Rust'],
-                datasets: [{
-                    label: 'Median Salary (USD)',
-                    data: [100636, 95541, 95000, 92000, 91000, 90000],
-                    backgroundColor: secondaryColor,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                ...horizontalBarOptions,
-                plugins: {
-                    ...horizontalBarOptions.plugins,
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => `$${context.parsed.x.toLocaleString()}`
-                        }
-                    }
-                }
-            }
-        });
-    });
+  // Chart.js common options
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#EAEAEA' } }
+    }
+  };
 </script>
 
 <svelte:head>
@@ -159,23 +137,55 @@
         </section>
 
         <!-- EDA Dashboard Section -->
-        <section id="eda" class="mb-20">
-            <h3 class="text-3xl font-bold text-center mb-10">Key Insights from the Survey</h3>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h4 class="text-xl font-semibold text-center mb-4">Top Responding Countries</h4>
-                    <div class="relative h-96">
-                        <canvas id="countryChart"></canvas>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h4 class="text-xl font-semibold text-center mb-4">Highest Paying Technologies</h4>
-                    <div class="relative h-96">
-                        <canvas id="techSalaryChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <section id="eda" class="space-y-8">
+    <h2 class="text-3xl font-bold text-center">Key Insights from the Survey</h2>
+
+    {#if loadingEDA}
+      <p class="text-center">Loading charts…</p>
+    {:else if edaError}
+      <p class="text-center text-red-600">Error loading EDA: {edaError}</p>
+    {:else}
+      <div class="grid md:grid-cols-2 gap-12">
+        <!-- Country Chart -->
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-xl font-semibold mb-4">Top 10 Countries by Median Salary</h3>
+          <div class="h-64">
+            <Chart
+              type="bar"
+              {commonOptions}
+              data={{
+                labels: topCountries,
+                datasets: [
+                  { data: countrySalaries, backgroundColor: '#4DB6AC' }
+                ]
+              }}
+              options={commonOptions}
+            />
+          </div>
+        </div>
+
+        <!-- Technology Chart -->
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-xl font-semibold mb-4">Top 10 Highest‑Paying Technologies</h3>
+          <div class="h-64">
+            <Chart
+              type="bar"
+              data={{
+                labels: topTech,
+                datasets: [
+                  { data: techSalaries, backgroundColor: '#D8A74E' }
+                ]
+              }}
+              options={{
+                ...commonOptions,
+                indexAxis: 'y'
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    {/if}
+  </section>
 
         <!-- Predictor Section -->
         <section id="predictor">

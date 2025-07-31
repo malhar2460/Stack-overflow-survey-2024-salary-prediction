@@ -38,12 +38,12 @@ class DeveloperProfile(BaseModel):
     Country: str = Field(..., example="United States of America")
     EdLevel: str = Field(..., example="Bachelor’s degree (B.A., B.S., B.Eng., etc.)")
     YearsCodePro: float = Field(..., example=10.0, description="Years of professional coding experience.")
-    DevType: str = Field(..., example="Developer, full-stack")
+    MainBranch: str = Field(..., example="Developer, full-stack")
     LanguageHaveWorkedWith: str = Field(..., example="HTML/CSS;JavaScript;Python;SQL")
     WebframeHaveWorkedWith: str = Field(..., example="Node.js;React")
     DatabaseHaveWorkedWith: str = Field(..., example="PostgreSQL;SQLite")
-    PlatformHaveWorkedWith: str = Field(..., example="AWS;Docker;Heroku")
-    OpSys: str = Field(..., example="macOS")
+    # PlatformHaveWorkedWith: str = Field(..., example="AWS;Docker;Heroku")
+    OpSysPersonalUse: str = Field(..., example="macOS")
 
     
     class Config:
@@ -60,6 +60,59 @@ class DeveloperProfile(BaseModel):
                 "OpSys": "Windows"
             }
         }
+
+# Load once at startup
+SURVEY_DF = pd.read_csv("../../data/processed/features_labels.csv").dropna(subset=["ConvertedCompYearly"])
+
+@app.get("/eda", tags=["EDA"])
+def get_eda():
+    """
+    Returns:
+      {
+        top_countries: [str…],
+        country_salaries: [float…],
+        top_tech: [str…],
+        tech_salaries: [float…]
+      }
+    """
+    df = SURVEY_DF
+
+    # Top 10 countries by median salary
+    country_med = (
+        df.groupby("Country")["ConvertedCompYearly"]
+          .median()
+          .sort_values(ascending=False)
+          .head(10)
+    )
+    top_countries      = country_med.index.tolist()
+    country_salaries   = country_med.values.tolist()
+
+    # Top 10 technologies by median salary
+    # Assumes there's one column listing multi-select techs,
+    # so we need to explode it first:
+    tech_series = (
+        df.LanguageHaveWorkedWith
+          .dropna()
+          .str.split(";")
+          .explode()
+          .to_frame("tech")
+          .join(df["ConvertedCompYearly"], how="left")
+    )
+    tech_med = (
+        tech_series.groupby("tech")["ConvertedCompYearly"]
+                  .median()
+                  .sort_values(ascending=False)
+                  .head(10)
+    )
+    top_tech       = tech_med.index.tolist()
+    tech_salaries  = tech_med.values.tolist()
+
+    return {
+        "top_countries":      top_countries,
+        "country_salaries":   country_salaries,
+        "top_tech":           top_tech,
+        "tech_salaries":      tech_salaries
+    }
 
 
 @app.get("/", tags=["General"])
