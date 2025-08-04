@@ -1,15 +1,11 @@
-import vercel from '@sveltejs/adapter-vercel';
+// frontend/svelte.config.js
+import adapter from '@sveltejs/adapter-vercel';
 
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
+export default {
   kit: {
-    // Use the Vercel adapter for optimal deploys on the Vercel platform
-    adapter: vercel(),
-    // Keep your lib alias pointed to the right folder
+    adapter: adapter(),
     alias: {
-      $lib: 'frontend/src/lib'
+      $lib: 'src/lib'
     }
   }
 };
-
-export default config;
