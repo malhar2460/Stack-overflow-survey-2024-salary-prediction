@@ -9,7 +9,11 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"format": "prettier --write .",
-		"lint": "prettier --check ."
+		"lint": "prettier --check .",
+		"start": "react-scripts start",
+		"test": "react-scripts test",
+		"eject": "react-scripts eject"
+		
 	},
 	"devDependencies": {
 		"@lucide/svelte": "^0.526.0",
