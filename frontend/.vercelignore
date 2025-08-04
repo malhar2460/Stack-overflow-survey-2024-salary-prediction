@@ -1,0 +1,20 @@
+# .vercelignore
+
+# Never upload raw data or Python stuff
+*.py
+*.ipynb
+*.csv
+/data/
+/models/
+
+# Dev-only folders
+/tests/
+/docs/
+/notebooks/
+
+# Node modules & build intermediates
+node_modules/
+frontend/node_modules/
+frontend/.svelte-kit/
+build/
+frontend/build/

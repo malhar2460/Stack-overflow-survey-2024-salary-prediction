@@ -39,6 +39,7 @@ origins = [
     "http://localhost",
     "http://localhost:5173",  # Default SvelteKit dev port
     "http://127.0.0.1:5173",
+    "http://localhost:4173"
     # Add your deployed frontend URL here for production
 ]
 
