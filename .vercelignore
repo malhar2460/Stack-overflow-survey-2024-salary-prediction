@@ -1,3 +1,23 @@
+env/
+__pycache__/
+data/
+*.pkl
+*.joblib
+*.csv
+*.xlsx
+*.json
+*.npy
+*.npz
+*.pt
+*.h5
+*.onnx
+*.log
+*.md
+*.ipynb_checkpoints/
+.DS_Store
+.vscode/
+*.zip
+*.tar.gz
 # .vercelignore
 
 # Never upload raw data or Python stuff
@@ -18,19 +38,11 @@ frontend/node_modules/
 frontend/.svelte-kit/
 build/
 frontend/build/
-
-# ignore all raw/processed data
-/data
-/models
+# Don’t upload raw data or local models
+/models/
+/data/
 /*.pkl
 /*.csv
 
-# ignore backend entirely if deploying only frontend
-/backend
-
-# ignore node_modules if you “npm install” in build step
-node_modules
-
-# ignore logs, env files, etc.
-*.log
-.env
+# If you’re only deploying frontend + /api
+frontend/.env
